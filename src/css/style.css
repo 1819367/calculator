@@ -97,7 +97,6 @@ body {
   grid-template-columns: repeat(4, auto);
   background: var(--grey-200);
   grid-template-areas:
-    /* "...." */
     "plus minus times divide"
     "seven eight nine equal"
     "four five six equal"
@@ -111,15 +110,16 @@ body {
   min-height: 3em;
   padding: 0;
   border: 0;
-  background: var(--grey-050)
+  background: var(--grey-050);
 }
 
-/* .calculator__keys > button:hover, */
+.calculator__keys > button:hover,
 .calculator__keys > button:focus,
 .calculator__keys > button:active {
   z-index: 1;
   background: var(--grey-100)
 }
+
 [data-key="plus"] { grid-area: plus; }
 [data-key="minus"] { grid-area: minus; }
 [data-key="times"] { grid-area: times; }
@@ -137,19 +137,20 @@ body {
 [data-key="decimal"] { grid-area: decimal; }
 [data-key="clear"] { grid-area: clear; }
 
+
 .calculator__keys > [data-key="equal"] {
   grid-area: equal;
   background-color: var(--orange-400)
 }
 
 .calculator__keys > [data-key="equal"]:hover,
-.calculator__keys > [data-keys="equal"]:focus {
+.calculator__keys > [data-key="equal"]:focus {
   grid-area: equal;
   background: var(--orange-500);
 }
 
-.calculator__keys > [data-keys-type="operator"].is-pressed,
-.calculator__keys > [data-keys-type="operator"]:hover,
+.calculator__keys > [data-button-type="operator"].is-pressed,
+.calculator__keys > [data-button-type="operator"]:hover,
 .calculato__keys > [data-button-type="operator"]:focus {
   background: var(--grey-200);
 }

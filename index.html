@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -12,37 +12,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
     <!-- stylesheets -->
-    <link rel="stylesheet" href="/src/css/normalize.css">
-    <link rel="stylesheet" href="/src/css/reset.css">
-    <link rel="stylesheet" href="/src/css/style.css">
+    <link rel="stylesheet" href="src/css/normalize.css">
+    <link rel="stylesheet" href="src/css/reset.css">
+    <link rel="stylesheet" href="src/css/style.css">
      
   </head>
   <body>
     <div class="container">
       <div class="calculator">
           <div class="calculator__display">0</div>
+
           <div class="calculator__keys">
-            <button data-key="plus" data-key-type="plus">+</button>
-            <button data-key="minus" data-key-type="minus">&minus;</button>
-            <button data-key="times" data-key-type="times">&times;</button>
-            <button data-key="divide" data-key-type="divide">&divide;</button>
-            <button data-key="1" data-key-type="one">1</button>
-            <button data-key="2" data-key-type="two">2</button>
-            <button data-key="3" data-key-type="three">3</button>
-            <button data-key="4" data-key-type="four">4</button>
-            <button data-key="5" data-key-type="five">5</button>
-            <button data-key="6" data-key-type="six">6</button>
-            <button data-key="7" data-key-type="seven">7</button>
-            <button data-key="8" data-key-type="eight">8</button>
-            <button data-key="9" data-key-type="nine">9</button>
-            <button data-key="0" data-key-type="zero">0</button>
-            <button data-key="decimal" data-key-type="decimal">.</button>
-            <button data-key="clear" data-key-type="clear">AC</button>
-            <button data-key="equal" data-key-type="equal">=</button>
+            <button data-key="plus" data-button-type="operator">+</button>
+            <button data-key="minus" data-button-type="operator">&minus;</button>
+            <button data-key="times" data-button-type="operator">&times;</button>
+            <button data-key="divide" data-button-type="operator">&divide;</button>
+            <button data-key="1" data-button-type="number">1</button>
+            <button data-key="2" data-button-type="number">2</button>
+            <button data-key="3" data-button-type="number">3</button>
+            <button data-key="4" data-button-type="number">4</button>
+            <button data-key="5" data-button-type="number">5</button>
+            <button data-key="6" data-button-type="number">6</button>
+            <button data-key="7" data-button-type="number">7</button>
+            <button data-key="8" data-button-type="number">8</button>
+            <button data-key="9" data-button-type="number">9</button>
+            <button data-key="0" data-button-type="number">0</button>
+            <button data-key="decimal" data-button-type="decimal">.</button>
+            <button data-key="clear" data-button-type="clear">AC</button>
+            <button data-key="equal" data-button-type="equal">=</button>
           </div>
       </div>
     </div>
   
-  <script type="module" src="/src/js/main.js"></script> 
+  <script type="module" src="src/js/main.js"></script> 
   </body>
 </html>
