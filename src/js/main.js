@@ -23,6 +23,15 @@ calculatorButtonsDiv.addEventListener('click', event => {
         } else {
             display.textContent = result + key
         }
+
+        if (previousButtonType === 'operator') {
+            display.textContent = key
+        }
+
+        if (previousButtonType === 'equal') {
+            resetCalculator()
+            display.textContent = key
+        }
     }
 
     //Handle input right after operator
@@ -32,7 +41,18 @@ calculatorButtonsDiv.addEventListener('click', event => {
 
     //Handle decimal button clicks
     if (buttonType === 'decimal') {
-        display.textContent = result + "."
+        if (!result.includes('.')) {
+            display.textContent = result + "."
+        }
+
+        if (previousButtonType === 'equal') {
+            resetCalculator()
+            display.textContent = '0.' 
+        }
+
+        if (previousButtonType === 'operator') {
+            display.textContent = '0.'
+        }
     }
 
     //Handle operator button clicks
@@ -49,15 +69,22 @@ calculatorButtonsDiv.addEventListener('click', event => {
     if (buttonType === 'equal') {
         const firstValue = parseFloat(calculator.dataset.firstValue)
         const operator = calculator.dataset.operator
-        const secondValue = parseFloat(result)
-
-        let newResult
-        if (operator === 'plus') newResult = firstValue + secondValue
-        if (operator === 'minus') newResult = firstValue - secondValue
-        if (operator === 'times') newResult = firstValue * secondValue
-        if (operator === 'divide') newResult = firstValue / secondValue
+        //Strips unnecessary decimal point 
+        const secondValue = parseFloat(result) * 1
     
-        display.textContent = newResult
+        //Skips calcuation if there's no 'firstValue' and 'operator'
+        if (firstValue && operator) {
+            let newResult
+            if (operator === 'plus') newResult = firstValue + secondValue
+            if (operator === 'minus') newResult = firstValue - secondValue
+            if (operator === 'times') newResult = firstValue * secondValue
+            if (operator === 'divide') newResult = firstValue / secondValue
+    
+            display.textContent = newResult
+        } else {
+            display.textContent = parseFloat(result) * 1
+        }
+        
     }
     
     //Handle clear button click
@@ -127,7 +154,6 @@ function resetCalculator() {
  */
 function runTest(test) {
     pressKeys(...test.keys)
-    // console.log('Before assertion, result is:', getDisplayValue()); //
     console.assert(getDisplayValue() === test.result, test.message)
     resetCalculator()
 }
@@ -136,20 +162,15 @@ function runTest(test) {
  * Tests the clear key
  */
 function testClearKey() {
-    // console.log('--- Test: Clear key (before calculation) ---');
     //Before calculation
     pressKeys('5', 'clear')
-    // console.log('Display value:', getDisplayValue());
     console.assert(getDisplayValue() === '0', 'Clear before calculation')
-    // console.log('Clear button text:', calculator.querySelector('[data-key="clear"]').textContent);
     console.assert(calculator.querySelector('[data-key="clear"]').textContent === 'AC', 'Clear once, should show AC')
     resetCalculator()
 
-    // console.log('--- Test: Clear key (after calculation) ---');
     //After calculation
     pressKeys('5', 'times', '9', 'equal', 'clear')
     const { firstValue, operator } = calculator.dataset
-    // console.log('After clear, firstValue:', firstValue, 'operator:', operator);
     console.assert(firstValue, 'Clear once; should have first value')
     console.assert(operator, 'Clear once; should have operator value')
     resetCalculator()
@@ -198,6 +219,85 @@ const tests = [
         message: 'Division',
         keys: ['5', 'divide', '1', '0', 'equal'],
         result: '0.5'
+    },
+    //Easy Edge Cases
+    // Number Keys first
+    {
+        message: 'Number Equal',
+        keys: ['5', 'equal'],
+        result: '5'
+    },
+    {
+        message: 'Number Decimal Equal',
+        keys: ['2', 'decimal', '4', '5', 'equal'],
+        result: '2.45'
+    },
+    // Decimal keys first
+    {
+        message: 'Decimal key',
+        keys: ['decimal'],
+        result: '0.'
+    },
+    {
+        message: 'Decimal Decimal',
+        keys: ['2', 'decimal', 'decimal'],
+        result: '2.'
+    },
+    {
+        message: 'Decimal Number Decimal',
+        keys: ['2', 'decimal', '5', 'decimal', '5'],
+        result: '2.55'
+    },
+    {
+        message: 'Decimal Equal',
+        keys: ['2', 'decimal', 'equal'],
+        result: '2'
+    },
+    // Equal key first
+    {
+        message: 'Equal',
+        keys: ['equal'],
+        result: '0'
+    },
+    {
+        message: 'Equal Number',
+        keys: ['equal', '3'],
+        result: '3'
+    },
+    {
+        message: 'Number Equal Number',
+        keys: ['5', 'equal', '3'],
+        result: '3'
+    },
+    {
+        message: 'Equal Decimal',
+        keys: ['equal', 'decimal'],
+        result: '0.'
+    },
+    {
+        message: 'Number Equal Decimal',
+        keys: ['5', 'equal', 'decimal'],
+        result: '0.'
+    },
+    {
+        message: 'Calculation + Operator',
+        keys: ['1', 'plus', '1', 'equal', 'plus', '1', 'equal'],
+        result: '3'
+    },
+    {
+        message: 'Operator Decimal',
+        keys: ['times', 'decimal'],
+        result: '0.'
+    },
+    {
+        message: 'Number Operator Decimal',
+        keys: ['5', 'times', 'decimal'],
+        result: '0.'
+    },
+    {
+        message: 'Number Operator Equal',
+        keys: ['7', 'divide', 'equal'],
+        result: '1'
     },
 ]
 
