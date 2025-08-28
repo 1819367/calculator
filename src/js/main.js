@@ -36,7 +36,11 @@ calculatorButtonsDiv.addEventListener('click', event => {
 
     //Handle input right after operator
     if (previousButtonType === 'operator') {
+        if (buttonType === 'number') {
         display.textContent = key
+        } else if (buttonType === 'decimal') {
+        display.textContent = key
+        }
     }
 
     //Handle decimal button clicks
@@ -58,33 +62,64 @@ calculatorButtonsDiv.addEventListener('click', event => {
     //Handle operator button clicks
     if (buttonType === 'operator') {
         button.classList.add('is-pressed')
-        calculator.dataset.firstValue = result //save the first value
-        calculator.dataset.operator = button.dataset.key //save the operator key
 
-        // console.log('Set firstValue:', calculator.dataset.firstValue)
-        // console.log('Set operator:', calculator.dataset.operator)
+            const firstValue = parseFloat(calculator.dataset.firstValue)
+            const operator = calculator.dataset.operator
+            const secondValue = parseFloat(result)
+            
+            //Makes a calculation
+            if (
+                previousButtonType !== 'operator' && 
+                //checks if previous button is equal key
+                previousButtonType !== 'equal' &&
+                typeof firstValue === 'number' && 
+                operator
+            ) {
+                let newResult
+                if (operator === 'plus') newResult = firstValue + secondValue
+                if (operator === 'minus') newResult = firstValue - secondValue
+                if (operator === 'times') newResult = firstValue * secondValue
+                if (operator === 'divide') newResult = firstValue / secondValue
+        
+                display.textContent = newResult
+                // If there's a calculation, we change firstValue
+                calculator.dataset.firstValue = newResult
+            } else {
+                calculator.dataset.firstValue = result //save the first value   
+            }        
+            calculator.dataset.operator = button.dataset.key //save the operator key
     }
 
     //Handle equal button click
     if (buttonType === 'equal') {
         const firstValue = parseFloat(calculator.dataset.firstValue)
         const operator = calculator.dataset.operator
-        //Strips unnecessary decimal point 
-        const secondValue = parseFloat(result) * 1
+        //finds modifier value
+        //Use modifer value as secondValue (if possible)
+        const modifierValue = parseFloat(calculator.dataset.modifierValue)
+        const secondValue = modifierValue || parseFloat(result)
+
+        // const secondValue = parseFloat(result) 
     
         //Skips calcuation if there's no 'firstValue' and 'operator'
-        if (firstValue && operator) {
+        if (typeof firstValue && operator) {
             let newResult
             if (operator === 'plus') newResult = firstValue + secondValue
             if (operator === 'minus') newResult = firstValue - secondValue
             if (operator === 'times') newResult = firstValue * secondValue
             if (operator === 'divide') newResult = firstValue / secondValue
-    
+            
             display.textContent = newResult
+            calculator.dataset.firstValue = newResult
+
+            calculator.dataset.modifierValue = secondValue
+            
+            //console.log values, commented out
+            // console.log(firstValue, operator, secondValue, '=', newResult)
+           
         } else {
             display.textContent = parseFloat(result) * 1
         }
-        
     }
     
     //Handle clear button click
@@ -92,6 +127,8 @@ calculatorButtonsDiv.addEventListener('click', event => {
         if (button.textContent === 'AC') {
             delete calculator.dataset.firstValue
             delete calculator.dataset.operator
+            //clearing the modifier value
+            delete calculator.dataset.modifierValue
         }
 
         display.textContent = '0'
@@ -298,6 +335,34 @@ const tests = [
         message: 'Number Operator Equal',
         keys: ['7', 'divide', 'equal'],
         result: '1'
+    },
+    //difficult edge cases
+    //Operator calculation
+    {
+        message: 'Operator calculation',
+        keys: ['9', 'minus', '5', 'minus'],
+        result: '4'
+    },
+    {
+        message: 'Number Operator Operator',
+        keys: ['9', 'times', 'divide'],
+        result: '9'
+    },
+    {
+        message: 'Operator follow-up calculation',
+        keys: ['1', 'plus', '2', 'plus', '3', 'plus', '4', 'plus', '5', 'plus'],
+        result: '15',
+    },
+    //Equal followup calculation
+    {
+        message: 'Number Operator Equal Equal',
+        keys: ['9', 'minus', 'equal', 'equal'],
+        result: '-9'
+    },
+    {
+        message: 'Number Operator Number Equal Equal',
+        keys: ['8', 'minus', '5', 'equal', 'equal'],
+        result: '-2'
     },
 ]
 
