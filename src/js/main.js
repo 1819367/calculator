@@ -3,150 +3,6 @@ const calculator = document.querySelector('.calculator')
 const display = calculator.querySelector('.calculator__display')
 const calculatorButtonsDiv = calculator.querySelector('.calculator__keys')
 
-// Add a click event listener to the calculator buttons container to handle button clicks
-calculatorButtonsDiv.addEventListener('click', event => {
-    const button = event.target
-    const { previousButtonType } = calculator.dataset
-    const { buttonType, key } = button.dataset
-    const result = display.textContent
-
-    //Release operator pressed state
-    const operatorKeys = [...calculatorButtonsDiv.children].filter(
-        button => button.dataset.buttonType === 'operator',
-    )
-    operatorKeys.forEach(button => button.classList.remove('is-pressed'))
-
-    //Handle number button clicks
-    if (buttonType === 'number') {
-        if (result === '0') {
-            display.textContent = key
-        } else {
-            display.textContent = result + key
-        }
-
-        if (previousButtonType === 'operator') {
-            display.textContent = key
-        }
-
-        if (previousButtonType === 'equal') {
-            resetCalculator()
-            display.textContent = key
-        }
-    }
-
-    //Handle input right after operator
-    if (previousButtonType === 'operator') {
-        if (buttonType === 'number') {
-        display.textContent = key
-        } else if (buttonType === 'decimal') {
-        display.textContent = key
-        }
-    }
-
-    //Handle decimal button clicks
-    if (buttonType === 'decimal') {
-        if (!result.includes('.')) {
-            display.textContent = result + "."
-        }
-
-        if (previousButtonType === 'equal') {
-            resetCalculator()
-            display.textContent = '0.' 
-        }
-
-        if (previousButtonType === 'operator') {
-            display.textContent = '0.'
-        }
-    }
-
-    //Handle operator button clicks
-    if (buttonType === 'operator') {
-        button.classList.add('is-pressed')
-
-            const firstValue = parseFloat(calculator.dataset.firstValue)
-            const operator = calculator.dataset.operator
-            const secondValue = parseFloat(result)
-            
-            //Makes a calculation
-            if (
-                previousButtonType !== 'operator' && 
-                //checks if previous button is equal key
-                previousButtonType !== 'equal' &&
-                typeof firstValue === 'number' && 
-                operator
-            ) {
-                let newResult
-                if (operator === 'plus') newResult = firstValue + secondValue
-                if (operator === 'minus') newResult = firstValue - secondValue
-                if (operator === 'times') newResult = firstValue * secondValue
-                if (operator === 'divide') newResult = firstValue / secondValue
-        
-                display.textContent = newResult
-                // If there's a calculation, we change firstValue
-                calculator.dataset.firstValue = newResult
-            } else {
-                calculator.dataset.firstValue = result //save the first value   
-            }        
-            calculator.dataset.operator = button.dataset.key //save the operator key
-    }
-
-    //Handle equal button click
-    if (buttonType === 'equal') {
-        const firstValue = parseFloat(calculator.dataset.firstValue)
-        const operator = calculator.dataset.operator
-        //finds modifier value
-        //Use modifer value as secondValue (if possible)
-        const modifierValue = parseFloat(calculator.dataset.modifierValue)
-        const secondValue = modifierValue || parseFloat(result)
-
-        // const secondValue = parseFloat(result) 
-    
-        //Skips calcuation if there's no 'firstValue' and 'operator'
-        if (typeof firstValue && operator) {
-            let newResult
-            if (operator === 'plus') newResult = firstValue + secondValue
-            if (operator === 'minus') newResult = firstValue - secondValue
-            if (operator === 'times') newResult = firstValue * secondValue
-            if (operator === 'divide') newResult = firstValue / secondValue
-            
-            display.textContent = newResult
-            calculator.dataset.firstValue = newResult
-
-            calculator.dataset.modifierValue = secondValue
-            
-            //console.log values, commented out
-            // console.log(firstValue, operator, secondValue, '=', newResult)
-           
-        } else {
-            display.textContent = parseFloat(result) * 1
-        }
-    }
-    
-    //Handle clear button click
-    if (buttonType === 'clear') {
-        if (button.textContent === 'AC') {
-            delete calculator.dataset.firstValue
-            delete calculator.dataset.operator
-            //clearing the modifier value
-            delete calculator.dataset.modifierValue
-        }
-
-        display.textContent = '0'
-        button.textContent = 'AC'
-    }
-
-    //Change clear button text based on last action
-    if (buttonType !=='clear') {
-        const clearButton = calculator.querySelector('[data-button-type=clear]')
-        clearButton.textContent = 'CE'
-    }
-
-    //store the current button's type as previousButtonType in dataset for next click reference
-    calculator.dataset.previousButtonType = buttonType
-})
-
-//Testing
-//=======
 // Functions
 /**
  * Gets displayed value
@@ -185,6 +41,145 @@ function resetCalculator() {
     console.assert(!calculator.dataset.operator, 'No operator value')
 }
 
+/**
+ * Calculates a value
+ * @param {String} firstValue
+ * @param {String} secondValue
+ * @param {String} operator
+ * @returns {Number}
+ */
+function calculate(firstValue, operator, secondValue) {
+    firstValue = parseFloat(firstValue)
+    secondValue = parseFloat(secondValue)
+
+    if (operator === 'plus') return firstValue + secondValue
+    if (operator === 'minus') return firstValue - secondValue
+    if (operator === 'times') return firstValue * secondValue
+    if (operator === 'divide') return firstValue / secondValue
+}
+
+// Event Listner
+// Add a click event listener to the calculator buttons container to handle button clicks
+calculatorButtonsDiv.addEventListener('click', event => {
+    const button = event.target
+    const { previousButtonType } = calculator.dataset
+    const { buttonType, key } = button.dataset
+    const displayValue = display.textContent
+
+    //Release operator pressed state
+    const operatorKeys = [...calculatorButtonsDiv.children].filter(
+        button => button.dataset.buttonType === 'operator',
+    )
+    operatorKeys.forEach(button => button.classList.remove('is-pressed'))
+
+    //Handle clear key
+    if (buttonType === 'clear') {
+        display.textContent = '0'
+        button.textContent = 'AC'
+        if (previousButtonType === 'clear') {
+            delete calculator.dataset.firstValue
+            delete calculator.dataset.operator
+            delete calculator.dataset.modifierValue
+        }
+     }
+      
+    //Change clear button text based on last action
+    if (buttonType !=='clear') {
+        const clearButton = calculator.querySelector('[data-button-type=clear]')
+        clearButton.textContent = 'CE'
+    }
+
+    //Handle number key
+    if (buttonType === 'number') {
+        if (displayValue === '0') {
+            display.textContent = key
+        } else {
+            display.textContent = displayValue + key
+        }
+
+        if (previousButtonType === 'operator') {
+            display.textContent = key
+        }
+
+        if (previousButtonType === 'equal') {
+            resetCalculator()
+            display.textContent = key
+        }
+    }
+
+    //Handle input right after operator
+    if (previousButtonType === 'operator') {
+        if (buttonType === 'number') {
+        display.textContent = key
+        } else if (buttonType === 'decimal') {
+        display.textContent = key
+        }
+    }
+
+    //Handle decimal key
+    if (buttonType === 'decimal') {
+        if (!displayValue.includes('.')) {
+            display.textContent = displayValue + "."
+        }
+        if (previousButtonType === 'equal') {
+            resetCalculator()
+            display.textContent = '0.' 
+        }
+        if (previousButtonType === 'operator') {
+            display.textContent = '0.'
+        }
+    }
+
+    //Handle operator key
+    if (buttonType === 'operator') {
+        button.classList.add('is-pressed')
+
+        const firstValue = calculator.dataset.firstValue
+        const operator = calculator.dataset.operator
+        const secondValue = displayValue
+        
+        //Makes a calculation
+        if (
+            previousButtonType !== 'operator' && 
+            previousButtonType !== 'equal' &&
+            firstValue && 
+            operator
+        ) {
+            const result = calculate(firstValue, operator, secondValue)
+            display.textContent = result
+            // If there's a calculation, we change firstValue
+            calculator.dataset.firstValue = result
+        } else {
+            calculator.dataset.firstValue = displayValue //save the first value   
+        }        
+        calculator.dataset.operator = button.dataset.key //save the operator key
+    }
+
+    //Handle equal key
+    if (buttonType === 'equal') {
+        const firstValue = calculator.dataset.firstValue
+        const operator = calculator.dataset.operator
+        //finds modifier value
+        //Use modifer value as secondValue (if possible)
+        const modifierValue = calculator.dataset.modifierValue
+        const secondValue = modifierValue || displayValue
+
+        //Skips calcuation if there's no 'firstValue' and 'operator'
+        if (firstValue && operator) {
+            const result = calculate(firstValue, operator, secondValue)  
+            display.textContent = result
+            calculator.dataset.firstValue = result
+            calculator.dataset.modifierValue = secondValue
+        } else {
+            display.textContent = parseFloat(displayValue) * 1
+        }
+    }
+    //store the current button's type as previousButtonType in dataset for next click reference
+    calculator.dataset.previousButtonType = buttonType
+})
+
+//Testing
+//=======
 /**
  * Runs a test
  * @param {Object} test
