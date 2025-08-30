@@ -6,7 +6,6 @@ const calculatorButtonsDiv = calculator.querySelector('.calculator__keys')
 // Functions
 /**
  * Gets displayed value
- * 
  */
 function getDisplayValue() {
     return calculator.querySelector('.calculator__display').textContent
@@ -16,7 +15,6 @@ function getDisplayValue() {
  * Presses calulator key 
  * @param {string} key
  */
-
 function pressKey(key) {
     calculator.querySelector(`[data-key="${key}"]`).click()
 }
@@ -33,12 +31,11 @@ function pressKeys(...keys) {
  * Resets calculator
  */
 function resetCalculator() {
-    pressKey('clear')
-    pressKey('clear')
-
+    pressKeys('clear', 'clear')
     console.assert(getDisplayValue() === '0', 'Calculator cleared')
     console.assert(!calculator.dataset.firstValue, 'No first value')
     console.assert(!calculator.dataset.operator, 'No operator value')
+    console.assert(!calculator.dataset.modifierValue, 'No operator value')
 }
 
 /**
@@ -58,124 +55,140 @@ function calculate(firstValue, operator, secondValue) {
     if (operator === 'divide') return firstValue / secondValue
 }
 
-// Event Listner
-// Add a click event listener to the calculator buttons container to handle button clicks
-calculatorButtonsDiv.addEventListener('click', event => {
-    const button = event.target
+/**
+ * handle clear key
+ * @param {HTMLElement} calculator
+ * @param {HTMLElement} button
+ */
+function handleClearKey (calculator, button) {
     const { previousButtonType } = calculator.dataset
-    const { buttonType, key } = button.dataset
-    const displayValue = display.textContent
+    display.textContent = '0'
+    button.textContent = 'AC'
+
+    if (previousButtonType === 'clear') {
+        delete calculator.dataset.firstValue
+        delete calculator.dataset.operator
+        delete calculator.dataset.modifierValue
+    }
+}
+
+/**handle number key 
+ * @param {HTMLElement} calculator
+ * @param {HTMLElement} button
+*/
+function handleNumberKeys (calculator, button) {
+    const displayValue = getDisplayValue()
+    const { previousButtonType } = calculator.dataset
+    const { key } = button.dataset
+
+    if (displayValue === '0') {
+        display.textContent = key
+    } else {
+        display.textContent = displayValue + key
+    }
+
+    if (previousButtonType === 'operator') {
+        display.textContent = key
+    }
+
+    if (previousButtonType === 'equal') {
+        resetCalculator()
+        display.textContent = key
+    }
+}
+
+/**handle decimal key 
+ * @param {HTMLElement} calculator
+*/
+function handleDecimalKey (calculator) {
+    const displayValue = getDisplayValue()
+    const { previousButtonType } = calculator.dataset
+
+    if (!displayValue.includes('.')) {
+        display.textContent = displayValue + "."
+    }
+    if (previousButtonType === 'equal') {
+        resetCalculator()
+        display.textContent = '0.' 
+    }
+    if (previousButtonType === 'operator') {
+        display.textContent = '0.'
+    }
+}
+
+/**handle operator key 
+ * @param {HTMLElement} calculator
+ * @param {HTMLElement} button
+*/
+function handleOperatorKeys(calculator, button) {
+    const displayValue = getDisplayValue()
+    const { previousButtonType, firstValue, operator } = calculator.dataset
+    const secondValue = displayValue
+    
+    button.classList.add('is-pressed')
+
+    //Makes a calculation
+    if (
+        previousButtonType !== 'operator' && 
+        previousButtonType !== 'equal' &&
+        firstValue && 
+        operator
+    ) {
+        const result = calculate(firstValue, operator, secondValue)
+        display.textContent = result
+        // If there's a calculation, we change firstValue
+        calculator.dataset.firstValue = result
+    } else {
+        calculator.dataset.firstValue = displayValue //save the first value   
+    }        
+    calculator.dataset.operator = button.dataset.key //save the operator key
+}
+
+/**handle equal key 
+ * @param {HTMLElement} calculator
+*/
+function handleEqualKey (calculator) {
+    const displayValue = getDisplayValue()
+    const { firstValue, operator, modifierValue } = calculator.dataset
+    const secondValue = modifierValue || displayValue
+
+    if (firstValue && operator) {
+        const result = calculate(firstValue, operator, secondValue)  
+        display.textContent = result
+        calculator.dataset.firstValue = result
+        calculator.dataset.modifierValue = secondValue
+    } else {
+        display.textContent = parseFloat(displayValue) * 1
+    }
+}
+
+// Event Listener
+calculatorButtonsDiv.addEventListener('click', event => {
+    if (!event.target.closest('button')) return
+    const button = event.target
+    const { buttonType } = button.dataset
 
     //Release operator pressed state
-    const operatorKeys = [...calculatorButtonsDiv.children].filter(
-        button => button.dataset.buttonType === 'operator',
-    )
+    const operatorKeys = [...calculatorButtonsDiv.children]
+        .filter(button => button.dataset.buttonType === 'operator')
     operatorKeys.forEach(button => button.classList.remove('is-pressed'))
 
-    //Handle clear key
-    if (buttonType === 'clear') {
-        display.textContent = '0'
-        button.textContent = 'AC'
-        if (previousButtonType === 'clear') {
-            delete calculator.dataset.firstValue
-            delete calculator.dataset.operator
-            delete calculator.dataset.modifierValue
-        }
-     }
-      
-    //Change clear button text based on last action
+     //Change clear button text based on last action
     if (buttonType !=='clear') {
         const clearButton = calculator.querySelector('[data-button-type=clear]')
         clearButton.textContent = 'CE'
     }
 
-    //Handle number key
-    if (buttonType === 'number') {
-        if (displayValue === '0') {
-            display.textContent = key
-        } else {
-            display.textContent = displayValue + key
-        }
-
-        if (previousButtonType === 'operator') {
-            display.textContent = key
-        }
-
-        if (previousButtonType === 'equal') {
-            resetCalculator()
-            display.textContent = key
-        }
+    //Handle clear key
+    switch (buttonType) {
+        case 'clear': handleClearKey(calculator, button); break
+        case 'number': handleNumberKeys(calculator, button); break
+        case 'decimal': handleDecimalKey(calculator); break
+        case 'operator': handleOperatorKeys(calculator, button); break
+        case 'equal': handleEqualKey(calculator); break
     }
 
-    //Handle input right after operator
-    if (previousButtonType === 'operator') {
-        if (buttonType === 'number') {
-        display.textContent = key
-        } else if (buttonType === 'decimal') {
-        display.textContent = key
-        }
-    }
-
-    //Handle decimal key
-    if (buttonType === 'decimal') {
-        if (!displayValue.includes('.')) {
-            display.textContent = displayValue + "."
-        }
-        if (previousButtonType === 'equal') {
-            resetCalculator()
-            display.textContent = '0.' 
-        }
-        if (previousButtonType === 'operator') {
-            display.textContent = '0.'
-        }
-    }
-
-    //Handle operator key
-    if (buttonType === 'operator') {
-        button.classList.add('is-pressed')
-
-        const firstValue = calculator.dataset.firstValue
-        const operator = calculator.dataset.operator
-        const secondValue = displayValue
-        
-        //Makes a calculation
-        if (
-            previousButtonType !== 'operator' && 
-            previousButtonType !== 'equal' &&
-            firstValue && 
-            operator
-        ) {
-            const result = calculate(firstValue, operator, secondValue)
-            display.textContent = result
-            // If there's a calculation, we change firstValue
-            calculator.dataset.firstValue = result
-        } else {
-            calculator.dataset.firstValue = displayValue //save the first value   
-        }        
-        calculator.dataset.operator = button.dataset.key //save the operator key
-    }
-
-    //Handle equal key
-    if (buttonType === 'equal') {
-        const firstValue = calculator.dataset.firstValue
-        const operator = calculator.dataset.operator
-        //finds modifier value
-        //Use modifer value as secondValue (if possible)
-        const modifierValue = calculator.dataset.modifierValue
-        const secondValue = modifierValue || displayValue
-
-        //Skips calcuation if there's no 'firstValue' and 'operator'
-        if (firstValue && operator) {
-            const result = calculate(firstValue, operator, secondValue)  
-            display.textContent = result
-            calculator.dataset.firstValue = result
-            calculator.dataset.modifierValue = secondValue
-        } else {
-            display.textContent = parseFloat(displayValue) * 1
-        }
-    }
-    //store the current button's type as previousButtonType in dataset for next click reference
-    calculator.dataset.previousButtonType = buttonType
+    calculator.dataset.previousButtonType = buttonType 
 })
 
 //Testing
@@ -215,13 +228,11 @@ const tests = [
         message: 'Number key',
         keys: ['2'],
         result: '2'
-    },
-    {
+    },{
         message: 'Number Number',
         keys: ['3', '5'],
         result: '35'
-    },
-    {
+    },{
         message: 'Number Decimal',
         keys: ['4', 'decimal'],
         result: '4.'
@@ -252,6 +263,11 @@ const tests = [
         keys: ['5', 'divide', '1', '0', 'equal'],
         result: '0.5'
     },
+    // { commented out, this is future test to address more functionality
+    //     message: 'Addition Substraction',
+    //     keys: ['5', "plus", '3', 'equal', 'minus', '1'],
+    //     result: '7'
+    // },
     //Easy Edge Cases
     // Number Keys first
     {
@@ -316,6 +332,7 @@ const tests = [
         keys: ['1', 'plus', '1', 'equal', 'plus', '1', 'equal'],
         result: '3'
     },
+    //Operator Keys first
     {
         message: 'Operator Decimal',
         keys: ['times', 'decimal'],
@@ -331,12 +348,18 @@ const tests = [
         keys: ['7', 'divide', 'equal'],
         result: '1'
     },
+    {
+        message: 'Number Operator Operator',
+        keys: ['9', 'times', 'divide'],
+        result: '9'
+    },
+
     //difficult edge cases
     //Operator calculation
     {
         message: 'Operator calculation',
-        keys: ['9', 'minus', '5', 'minus'],
-        result: '4'
+        keys: ['9', 'plus', '5', 'plus'],
+        result: '14'
     },
     {
         message: 'Number Operator Operator',
